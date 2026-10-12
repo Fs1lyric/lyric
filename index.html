@@ -254,6 +254,9 @@ const SITE = {
   ],
   /* image: put a screenshot path or URL here; without one the card draws an ascii cover */
   projects: [
+    { name: "openbrain", year: "2026", kind: "research", cover: "neuron", url: "https://fs1lyric.github.io/openbrain/",
+      desc: "a differentiable neuron simulator in rust. a real reconstructed ca1 neuron learns xor by gradient descent through the cable equations in seconds on a cpu, 2.4x faster gradients than jaxley on the same cell.",
+      tags: ["rust", "computational neuroscience", "adjoint gradients", "python"] },
     { name: "odyssey design", year: "2026", kind: "software", cover: "timeline", url: "https://fs1lyric.github.io/odyssey-design/",
       desc: "a local-first desktop suite: documents, spreadsheets, decks and a multi-track video editor. the timeline compiles the whole project into one ffmpeg filter graph, so there are no intermediate renders.",
       tags: ["rust", "tauri", "ffmpeg", "sqlite"] },
@@ -514,6 +517,18 @@ function drawCover(cv) {
         if (clip) { chr = track === 4 ? "~" : "="; color = [col.c, col.v, col.m, col.c][track - 1]; a = .55 + r * .3; }
       }
       if (Math.abs(u - .62) < .012) { chr = "|"; color = col.m; a = .95; }
+    } else if (cv.dataset.cover === "neuron") {
+      /* a neuron: soma, branching dendrites, an axon running off to the right */
+      const x = (u - .5) * 2 * (w / h) - .35, y = (v - .5) * 2;
+      const seg = (ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, t = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)); return Math.hypot(x - ax - t * dx, y - ay - t * dy); };
+      const tree = [[-.3, 0, -.9, -.55], [-.9, -.55, -1.3, -.85], [-.9, -.55, -1.35, -.35], [-.3, 0, -1.0, .35], [-1.0, .35, -1.4, .2], [-1.0, .35, -1.25, .8],
+        [-.3, 0, -.55, -.85], [-.55, -.85, -.9, -.95], [-.3, 0, -.6, .8], [-.6, .8, -.35, .95]];
+      const dend = Math.min(...tree.map(t => seg(...t)));
+      const axon = Math.abs(y - .12 * Math.sin(x * 3)) + (x < -.2 ? 9 : 0);
+      const d = Math.hypot(x + .3, y);
+      if (d < .26) { chr = d < .13 ? "@" : "#"; color = col.m; a = .95; }
+      else if (dend < .085) { chr = r > .5 ? "+" : "*"; color = col.v; a = .85; }
+      else if (axon < .07) { chr = Math.sin(x * 14 - 1) > .6 ? "o" : "-"; color = col.c; a = .85; }
     } else {
       /* an eye drawn in ink: almond outline, iris rings, a pupil, a drip */
       const x = (u - .5) * 2 * (w / h), y = (v - .5) * 2;
