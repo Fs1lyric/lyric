@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="lyric: hobbyist coder and artist in dhaka, bangladesh.">
+<title>lyric</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* layout: one 50rem column; home is a single centered card over a living ascii field, every other page gets a slim header */
+:root {
+  --bg: #111315; --bg-2: #181b1f; --bg-3: #24272e;
+  --txt-3: #4c5361; --txt-2: #7a8599; --txt: #bcc5d8; --txt-0: #dde4f2;
+  --cyan: #2cc4d6; --violet: #6d6af0; --magenta: #c26ae8;
+  --field: 220, 14%; --field-l: 52%;
+  --c0: #161b22; --c1: #0d2b52; --c2: #144a8a; --c3: #1f6feb; --c4: #58a6ff;
+  --mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f3f4f7; --bg-2: #e8eaef; --bg-3: #d6d9e1;
+  --txt-3: #a3a9b6; --txt-2: #5f687a; --txt: #313846; --txt-0: #12161d;
+  --cyan: #0e8597; --violet: #4b47d6; --magenta: #9a3fc4; --field-l: 46%;
+  --c0: #ebedf0; --c1: #b6e3ff; --c2: #54aeff; --c3: #0969da; --c4: #0a3069;
+  color-scheme: light;
+} }
+:root[data-theme="light"] {
+  --bg: #f3f4f7; --bg-2: #e8eaef; --bg-3: #d6d9e1;
+  --txt-3: #a3a9b6; --txt-2: #5f687a; --txt: #313846; --txt-0: #12161d;
+  --cyan: #0e8597; --violet: #4b47d6; --magenta: #9a3fc4; --field-l: 46%;
+  --c0: #ebedf0; --c1: #b6e3ff; --c2: #54aeff; --c3: #0969da; --c4: #0a3069;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { height: 100%; scrollbar-width: thin; scrollbar-color: var(--bg-3) transparent; }
+body {
+  margin: 0; min-height: 100%; display: flex; flex-direction: column;
+  background: var(--bg); color: var(--txt);
+  font-family: var(--sans); font-weight: 300; font-size: 16px;
+  padding-inline: 1.5rem; overflow-x: hidden;
+}
+::selection { background: var(--cyan); color: var(--bg); }
+a { color: inherit; text-decoration: none; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; border-radius: 2px; }
+h1, h2, h3 { font-family: var(--mono); font-weight: 400; color: var(--txt-0); letter-spacing: -0.02em; line-height: 1.35; text-wrap: balance; }
+p { font-size: 1.125rem; line-height: 1.75; margin: 1rem 0; max-width: 62ch; }
+code { font-family: var(--mono); font-size: .92em; background: var(--bg-2); padding: 0 .3em; }
+
+canvas#field { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+/* nav link: the slash folds into an arrow */
+a.nav { position: relative; font-family: var(--mono); white-space: nowrap; }
+a.nav .arrow { position: absolute; top: -.02em; transform-origin: 50% 53%; transform: rotate(-72deg) scaleY(0); transition: transform .3s; }
+a.nav .slash { display: inline-block; line-height: 0; transition: transform .3s, margin .3s; }
+a.nav:hover .arrow, a.nav:focus-visible .arrow, a.nav[aria-current="page"] .arrow { transform: none; }
+a.nav:hover .slash, a.nav:focus-visible .slash, a.nav[aria-current="page"] .slash { margin-right: 1.1ch; transform: scale(.5) rotate(72deg); }
+a.nav[aria-current="page"] { color: var(--txt-0); }
+
+a.ext { text-decoration: underline transparent 2px; text-underline-offset: 3px; transition: text-decoration-color .2s; }
+a.ext .arrow { display: inline-block; margin-left: .5ch; transition: transform .2s; }
+a.ext:hover { text-decoration-color: currentColor; }
+a.ext:hover .arrow { transform: translate(.2em, -.2em); }
+
+a.back { font-family: var(--mono); color: var(--txt-2); font-size: 1rem; }
+a.back .arrow { display: inline-block; margin-right: .5ch; transition: transform .2s; }
+a.back:hover { color: var(--txt-0); }
+a.back:hover .arrow { transform: translateX(-.3em); }
+
+header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem 2rem;
+  max-width: 50rem; width: 100%; margin: 0 auto; padding-block: 2rem 0; transition: opacity .3s;
+}
+header .brand { display: flex; align-items: center; gap: .9rem; font-family: var(--mono); font-size: 1.25rem; color: var(--txt-0); }
+header nav { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; font-size: 1.02rem; }
+body.home header { opacity: 0; pointer-events: none; }
+
+main { flex: 1; width: 100%; max-width: 50rem; margin: 0 auto; padding-block: 3rem 4rem; }
+.view { animation: rise .45s cubic-bezier(.2,.7,.3,1) both; }
+@keyframes rise { from { opacity: .001; transform: translateY(8px); } }
+
+/* home */
+body.home main { display: flex; align-items: center; justify-content: center; max-width: none; padding-block: 2rem 8rem; }
+.hero { max-width: 44rem; }
+.hero .row { display: flex; align-items: center; gap: 1.5rem; }
+.hero h1 { margin: 0; font-size: 3rem; }
+.hero p { font-size: 1.25rem; margin: 1rem 0 1.75rem; }
+.hero nav { display: flex; gap: 1rem 2rem; flex-wrap: wrap; font-size: 1.5rem; }
+.hero .now { margin-top: 2.25rem; display: flex; gap: .75ch; font-family: var(--mono); font-size: .85rem; color: var(--txt-2); }
+.hero .now .dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--cyan); align-self: center; animation: blink 2.4s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+
+
+/* pages */
+.page h1 { font-size: 2.5rem; margin: 1rem 0 1.5rem; }
+.page h2 { font-size: 1.4rem; margin: 3rem 0 1rem; }
+.lede { color: var(--txt-2); font-size: 1.125rem; margin-top: -.5rem; }
+
+
+.hobbies { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 1.25rem; }
+.hobbies .emoji { display: block; font-size: 2.5rem; line-height: 1; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; transition: transform .3s cubic-bezier(.2,.7,.3,1.4); cursor: default; }
+.hobbies a.emoji { cursor: pointer; }
+.hobbies .emoji:hover, .hobbies .emoji:focus-visible { transform: scale(1.2) rotate(-8deg); }
+
+/* projects */
+.projects { list-style: none; padding: 0; margin: 2.5rem 0 0; display: grid; gap: 3rem; }
+.project a.card { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1.75rem; align-items: start; }
+.cover { aspect-ratio: 4 / 3; max-width: 100%; background: var(--bg-2); border: 1px solid var(--bg-3); overflow: hidden; position: relative; transition: border-color .25s; }
+.cover canvas, .cover img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .5s cubic-bezier(.2,.7,.3,1); }
+.project a.card:hover .cover { border-color: var(--txt-3); }
+.project a.card:hover .cover canvas, .project a.card:hover .cover img { transform: scale(1.04); }
+.project .meta { display: flex; gap: 1rem; font-family: var(--mono); font-size: .82rem; color: var(--txt-3); font-variant-numeric: tabular-nums; }
+.project h3 { margin: .35rem 0 0; font-size: 1.35rem; display: flex; align-items: baseline; gap: .75ch; }
+.project h3 .arrow { opacity: 0; transform: translateX(-.5em); transition: all .2s; color: var(--cyan); }
+.project a.card:hover h3 .arrow, .project a.card:focus-visible h3 .arrow { opacity: 1; transform: none; }
+.project p { margin: .5rem 0 .75rem; font-size: 1rem; line-height: 1.65; color: var(--txt-2); }
+.tags { display: flex; flex-wrap: wrap; gap: .5rem .9rem; font-family: var(--mono); font-size: .78rem; color: var(--txt-2); }
+.tags span::before { content: "#"; color: var(--txt-3); }
+
+/* about: tech + links */
+.tech { display: grid; gap: .9rem; margin: 0; }
+.tech div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 1rem; align-items: baseline; }
+.tech dt { font-family: var(--mono); font-size: .82rem; color: var(--txt-3); }
+.tech dd { margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.tech dd span { font-family: var(--mono); font-size: .85rem; padding: .2rem .6rem; border: 1px solid var(--bg-3); color: var(--txt); transition: border-color .2s, color .2s; }
+.tech dd span:hover { border-color: var(--c3); color: var(--txt-0); }
+.links { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .75rem 2rem; font-family: var(--mono); font-size: 1.05rem; }
+@media (max-width: 720px) { .tech div { grid-template-columns: 1fr; gap: .4rem; } }
+
+/* photos + inspo */
+.gallery { columns: 3 14rem; column-gap: 1rem; margin-top: 2rem; }
+.gallery button { display: block; width: 100%; margin: 0 0 1rem; padding: 0; border: 0; background: var(--bg-2); cursor: zoom-in; break-inside: avoid; overflow: hidden; }
+.gallery img { display: block; width: 100%; height: auto; transition: transform .5s cubic-bezier(.2,.7,.3,1), opacity .3s; opacity: .9; }
+.gallery button:hover img { transform: scale(1.03); opacity: 1; }
+.inspo { list-style: none; padding: 0; margin: 0; columns: 3 13rem; column-gap: 1rem; }
+.inspo li { break-inside: avoid; margin-bottom: 1.25rem; }
+.inspo a { display: grid; gap: .45rem; }
+.inspo .thumb { display: block; background: var(--bg-2); border: 1px solid var(--bg-3); overflow: hidden; transition: border-color .25s; }
+.inspo .thumb img { display: block; width: 100%; height: auto; transition: transform .5s cubic-bezier(.2,.7,.3,1); }
+.inspo a:hover .thumb { border-color: var(--c3); }
+.inspo a:hover .thumb img { transform: scale(1.03); }
+.inspo .t { font-family: var(--mono); font-size: .75rem; color: var(--txt-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s; }
+.inspo a:hover .t { color: var(--txt); }
+.empty { font-family: var(--mono); font-size: .9rem; color: var(--txt-3); margin-top: 2rem; }
+.lightbox { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 1.5rem; background: color-mix(in srgb, var(--bg) 92%, transparent); cursor: zoom-out; animation: rise .25s ease both; }
+.lightbox img { max-width: 100%; max-height: 90vh; object-fit: contain; }
+
+/* blog */
+.posts { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; }
+.posts a { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .25rem 1.5rem; padding: 1.1rem 1.25rem; margin-inline: -1.25rem; transition: background .2s; }
+.posts a:hover, .posts a:focus-visible { background: color-mix(in srgb, var(--bg-2) 85%, transparent); }
+.posts time { font-family: var(--mono); font-size: .85rem; color: var(--txt-3); padding-top: .2rem; font-variant-numeric: tabular-nums; }
+.posts h3 { margin: 0; font-size: 1.15rem; }
+.posts p { margin: .2rem 0 0; font-size: 1rem; line-height: 1.6; color: var(--txt-2); }
+.draft { font-family: var(--mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--magenta); border: 1px solid currentColor; padding: .05rem .35rem; margin-left: .6rem; vertical-align: .2em; }
+.post .when { font-family: var(--mono); font-size: .85rem; color: var(--txt-3); }
+.post h1 { margin-top: 2rem; }
+.post .body p { font-size: 1.1rem; }
+.post .body h2 { font-size: 1.25rem; }
+.post .body blockquote { margin: 2rem 0; padding-left: 1.5rem; border-left: 2px solid var(--txt-3); color: var(--txt-2); }
+
+/* contributions */
+.contrib-total { font-family: var(--mono); font-size: .9rem; color: var(--txt-2); margin: 0 0 1rem; }
+.contrib-total b { font-weight: 400; color: var(--txt-0); }
+.heat-wrap { overflow-x: auto; padding-bottom: .25rem; scrollbar-width: thin; }
+.heat { display: grid; grid-template-rows: auto repeat(7, auto); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; min-width: 38rem; }
+.heat .m { grid-row: 1; font-family: var(--mono); font-size: .7rem; color: var(--txt-3); white-space: nowrap; overflow: visible; padding-bottom: .2rem; }
+.heat i, .legend i { display: block; aspect-ratio: 1; border-radius: 2px; background: var(--c0); }
+.heat i[data-l="1"], .legend i[data-l="1"] { background: var(--c1); }
+.heat i[data-l="2"], .legend i[data-l="2"] { background: var(--c2); }
+.heat i[data-l="3"], .legend i[data-l="3"] { background: var(--c3); }
+.heat i[data-l="4"], .legend i[data-l="4"] { background: var(--c4); }
+.legend { display: flex; align-items: center; gap: .5rem; justify-content: flex-end; font-family: var(--mono); font-size: .72rem; color: var(--txt-3); margin-top: .6rem; }
+.legend .heat-key { display: flex; gap: 3px; }
+.legend i { width: .7rem; }
+.fine { font-size: .9rem; color: var(--txt-3); max-width: 62ch; line-height: 1.6; }
+
+/* colophon */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 1rem; margin: 1rem 0; padding: 0; list-style: none; }
+.swatches li { display: grid; gap: .4rem; font-family: var(--mono); font-size: .8rem; color: var(--txt-2); }
+.swatches .chip { aspect-ratio: 3 / 2; max-width: 100%; border: 1px solid var(--bg-3); }
+.specimen { display: grid; gap: 1rem; margin: 1rem 0; }
+.specimen div { display: grid; gap: .2rem; }
+.specimen .k { font-family: var(--mono); font-size: .8rem; color: var(--txt-3); }
+.specimen .mono { font-family: var(--mono); font-size: 1.6rem; color: var(--txt-0); }
+.specimen .sans { font-family: var(--sans); font-size: 1.6rem; color: var(--txt-0); }
+.charset { font-family: var(--mono); font-size: 1.1rem; letter-spacing: .4em; color: var(--txt-2); }
+.charset b { font-weight: 400; color: var(--cyan); }
+
+footer a { color: var(--txt-2); transition: color .2s; }
+footer a:hover { color: var(--txt-0); }
+
+/* contact */
+.contact { list-style: none; padding: 0; margin: 2rem 0; display: grid; gap: 1.25rem; font-size: 1.25rem; }
+.contact .k { font-family: var(--mono); font-size: .82rem; color: var(--txt-3); display: block; margin-bottom: .1rem; }
+.copy { font: inherit; font-family: var(--mono); font-size: .8rem; background: var(--bg-2); color: var(--txt-2); border: 1px solid var(--bg-3); padding: .2rem .6rem; margin-left: .75rem; cursor: pointer; vertical-align: middle; }
+.copy:hover { color: var(--txt-0); border-color: var(--txt-3); }
+
+footer { max-width: 50rem; width: 100%; margin: 0 auto; padding-block: 1.5rem 2rem; font-family: var(--mono); font-size: .8rem; color: var(--txt-3); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+body.home footer { display: none; }
+
+@media (max-width: 720px) {
+  body { font-size: 15px; padding-inline: 1rem; }
+  .hero .row { flex-direction: column-reverse; align-items: flex-start; gap: .75rem; }
+  .hero h1 { font-size: 2.6rem; }
+  .hero nav { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 1.3rem; }
+  .page h1 { font-size: 2rem; }
+  .project a.card { grid-template-columns: 1fr; gap: 1rem; }
+  .posts a { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; }
+}
+</style>
+</head>
+<body>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header id="top" inert>
+  <a class="brand" href="#home" aria-label="home">lyric</a>
+  <nav aria-label="main" data-nav></nav>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <span>© nabhan lyric chowdhury · <a href="#colophon">colophon</a></span>
+  <span id="clock">dhaka --:--</span>
+</footer>
+
+<script>
+/* ---- content: edit everything here ---- */
+const SITE = {
+  name: "lyric",
+  fullName: "nabhan lyric chowdhury",
+  tagline: "i write software that runs on your machine and stays there. mostly rust and typescript, mostly desktop.",
+  now: "currently writing ink eye",
+  email: "fs.lyric@proton.me",
+  socials: [
+    { k: "github", label: "github.com/Fs1lyric", url: "https://github.com/Fs1lyric" },
+    { k: "instagram", label: "@volksreader", url: "https://www.instagram.com/volksreader/" },
+    { k: "chess", label: "chess.com/member/fs1lyric", url: "https://www.chess.com/member/fs1lyric" },
+    { k: "discord", label: "discord profile", url: "https://discord.com/users/1467416211364249857" },
+  ],
+  hobbies: [
+    { emoji: "♟️", name: "chess", text: "long games, sharp openings, and enough hours in to write an engine of my own.", link: ["chess.com", "https://www.chess.com/member/fs1lyric"] },
+    { emoji: "✍️", name: "writing", text: "fiction first. my novel ink eye is being serialised on webnovel.", link: ["read ink eye", "https://www.webnovel.com/book/ink-eye_36125155608860405"] },
+    { emoji: "🎨", name: "illustration", text: "ink, pencil and digital. drawing is where most of my ideas start." },
+    { emoji: "🥋", name: "martial arts", text: "training keeps the head clear between long sessions at the desk." },
+    { emoji: "📚", name: "reading", text: "an unreasonable number of books. some end up as reels on @volksreader.", link: ["@volksreader", "https://www.instagram.com/volksreader/"] },
+  ],
+  /* image: put a screenshot path or URL here; without one the card draws an ascii cover */
+  projects: [
+    { name: "odyssey design", year: "2026", kind: "software", cover: "timeline", url: "https://fs1lyric.github.io/odyssey-design/",
+      desc: "a local-first desktop suite: documents, spreadsheets, decks and a multi-track video editor. the timeline compiles the whole project into one ffmpeg filter graph, so there are no intermediate renders.",
+      tags: ["rust", "tauri", "ffmpeg", "sqlite"] },
+    { name: "ink eye", year: "ongoing", kind: "novel", cover: "eye", url: "https://www.webnovel.com/book/ink-eye_36125155608860405",
+      desc: "my novel, serialised chapter by chapter on webnovel and still being written.",
+      tags: ["fiction", "webnovel"] },
+  ],
+  tech: {
+    languages: ["rust", "typescript", "javascript", "c++", "python", "html", "css"],
+    frameworks: ["tauri", "react", "egui"],
+    tools: ["ffmpeg", "sqlite", "supabase", "vite", "git", "arch linux"],
+  },
+  /* photos: { src, alt } — src is a file next to index.html, e.g. "photos/rain.jpg" */
+  photos: [],
+  /* inspo: { group, name, url, image, w, h }. list and images taken from refact0r.dev/inspo */
+  inspo: [{"group":"web design","name":"Falcon - Design Different","url":"https://falcon.so/","image":"inspo/j97f3v9v30axfjbtdd8fww473h8fwpqe.jpg","w":1440,"h":900},{"group":"web design","name":"basement.studio | We make cool shit that performs.","url":"https://basement.studio/","image":"inspo/j97581v773ztq52x3pajd5wty18fsemn.jpg","w":1440,"h":900},{"group":"web design","name":"about me","url":"https://enochlau.com","image":"inspo/j975aebk4p9dh25yrd3d6sdxwx8fnscj.jpg","w":1440,"h":900},{"group":"web design","name":"A/V exp by ½8","url":"https://seq.halfof8.com/","image":"inspo/j9748xv4acc9mybcz76w8x8hxn8faaw2.jpg","w":1440,"h":900},{"group":"web design","name":"Synaptrix | Advancing the Future of Neural Interfaces","url":"https://www.synaptrix-labs.com/","image":"inspo/j9716wpn2cav83ph45r3rxq7mh8f00vg.jpg","w":1440,"h":900},{"group":"web design","name":"illoca – Architectural design at the speed of thought","url":"https://illoca.unseen.co/","image":"inspo/j97f22tgm82748nq2h1vy682658eke1a.jpg","w":1440,"h":900},{"group":"visual art","name":"upverse.","url":"https://x.com/Rizaru_DZGN/status/2081209844535832818?s=20","image":"inspo/j971b1b4j5pwztday7044yzg6n8ea1gp.jpg","w":2176,"h":3264},{"group":"visual art","name":"Contingent v.01","url":"https://www.facebook.com/photo/?fbid=10161418332813964&set=a.10150617345453964","image":"inspo/j971vh3rya44tyaxn491teenjs8e71bg.jpg","w":5400,"h":3600},{"group":"visual art","name":"Arcadia at the End of Time","url":"https://awsomesauce.wordpress.com/2011/05/20/%E2%80%9Ca-series-of-drawings-from-the-end-of-time-bartlett%E2%80%9D/","image":"inspo/j97exw40z5vwr5k0szs1hr1m1d8e268k.jpg","w":1223,"h":1600},{"group":"visual art","name":"fih.","url":"https://x.com/enigmatriz/status/2092989435637899735?s=20","image":"inspo/j975kh7k3dzharhb85zcm287558d84p7.jpg","w":2880,"h":2880},{"group":"visual art","name":"no magic in riso","url":"https://www.graphic-design-books.com/en/products/n-magic-in-riso","image":"inspo/j971tq03ygc8wyhffvw9b3b6b58d86q7.jpg","w":1800,"h":1800},{"group":"web design","name":"Interlude","url":"https://interludeapp.net/","image":"inspo/j9746c5adf3jq9y4p22cbfdrpx8d83n8.jpg","w":1440,"h":900},{"group":"visual art","name":"enigmatriz mercury","url":"https://x.com/enigmatriz/status/2091551620685275202?s=20","image":"inspo/j97bwgrs83sjs2z0kt0c5cr9yd8d4xax.jpg","w":2000,"h":2500},{"group":"web design","name":"Jackie Zhang","url":"https://jackiezhang.co.za/","image":"inspo/j9780abgagn7erh2t7b4mc77q18d0mmt.jpg","w":1440,"h":900},{"group":"web design","name":"GT Mechanik","url":"https://gt-mechanik.com/","image":"inspo/j973xztcnrpaqn4gjfdf53xykh89n10d.jpg","w":1440,"h":900},{"group":"web design","name":"Pipeline","url":"https://pipeline.one/","image":"inspo/j9753zrb9cebykxe79pv8n0bg1898z0w.jpg","w":1440,"h":900},{"group":"web design","name":"NLC | New Layer Capital","url":"https://nlc.obys.agency/","image":"inspo/j97an6wee06ndzw78yg8awqvv98813s8.jpg","w":1440,"h":900},{"group":"web design","name":"procedural computer","url":"https://procedural.computer/","image":"inspo/j974jj3gr5xt45s0dk0fw4vnjn863vke.jpg","w":1440,"h":900},{"group":"web design","name":"Megan Yap","url":"https://meganyap.me/home","image":"inspo/j9735mg7shnfr8e633dksvkyy585meht.jpg","w":1440,"h":900},{"group":"visual art","name":"fullmoon","url":"https://x.com/ZethZ161/status/2048069775520055687/photo/1","image":"inspo/j970q87fcfy724q0q1vn5vhg3n85n8ky.jpg","w":1600,"h":2000},{"group":"web design","name":"ZUJI.ZO","url":"https://zzz-zuji.zocomputer.io/","image":"inspo/j97avbcsre6te8mzx7yk9qfmkh85henp.jpg","w":1440,"h":900},{"group":"web design","name":"Making Software","url":"https://www.makingsoftware.com/","image":"inspo/j973zwgm7gtt1nn5w66kmscse5858v0w.jpg","w":3200,"h":1800},{"group":"visual art","name":"不速之客","url":"https://eastasiangraphicsarchive.com/graphics/%E4%B8%8D%E9%80%9F%E4%B9%8B%E5%AE%A2-uninvited-guest","image":"inspo/j976mh4x7n6n7z93hqxxn3g2v184s3na.jpg","w":1400,"h":1986},{"group":"web design","name":"Michele Du","url":"https://micheledu.com/","image":"inspo/j970sbz01z0tc57agfwhkhcc8h841aer.jpg","w":1440,"h":900},{"group":"web design","name":"desktopGeneration :: Home","url":"https://www.desktopgeneration.com/","image":"inspo/j97ax8ax6hphstenaapag9ec99840y1x.jpg","w":1440,"h":900},{"group":"visual art","name":"—+ ARCADIA.  { lavender-premonition° } +2609","url":"https://x.com/veil__hq/status/2028476455747829958","image":"inspo/j978z3d00dtzgngb5373aqn7k1827a4c.jpg","w":1536,"h":2048},{"group":"visual art","name":"restart?","url":"https://x.com/CARATQUEX/status/2027348236663738563","image":"inspo/j9730njjahw65yh64krwjhm2b981yxec.jpg","w":3288,"h":1863},{"group":"web design","name":"Socratica's Winter 2026 Symposium","url":"https://symposium.socratica.info/","image":"inspo/j97dadqb471nx5e9e222xv7my181qmxb.jpg","w":1440,"h":900},{"group":"visual art","name":"arisakaox","url":"https://x.com/arisakaox/status/2021601110885028302","image":"inspo/j973h2q626vzkzvk1pdb3053z18113h9.jpg","w":3840,"h":3840},{"group":"visual art","name":"caeruleum zero","url":"https://x.com/takada_dot/status/2010736054006096159/","image":"inspo/j97dbqsd6zbgkt3ang1ehvsckh80fkg9.jpg","w":3277,"h":4096},{"group":"web design","name":"Operate","url":"https://operate.so/","image":"inspo/j973kxj08ke6zv5k4x81g1yvf5801dwa.jpg","w":1440,"h":900},{"group":"visual art","name":"[d 127 y3].Concrete Solitude","url":"https://x.com/lefko_d/status/2015706571666502083","image":"inspo/j97b3eyacbsfnmt8t360x8501s801hsb.jpg","w":2048,"h":1536},{"group":"web design","name":"Emmi's Playground","url":"https://emmiwu.com/playground","image":"inspo/j97620bgjgqf3m9v3p56771a3n7zk9mq.jpg","w":1440,"h":900},{"group":"web design","name":"Eduoardo Lunardi","url":"https://www.edoardolunardi.dev/","image":"inspo/j972tcq5vmy8h90tmf3nfzjka97zjbtb.jpg","w":1440,"h":900},{"group":"web design","name":"Stripe Dot Dev","url":"https://stripe.dev/","image":"inspo/j974y2b58hw432kj152pedmd0s7zjq1m.jpg","w":1440,"h":900},{"group":"web design","name":"3200 Kelvin","url":"https://www.3200kelvin.com/","image":"inspo/j97e60g2xmvwc16ncscmrz3v217zks16.jpg","w":2880,"h":1800},{"group":"web design","name":"Fiddle.Digital","url":"https://fiddle.digital/work","image":"inspo/j972a5ejgmv527xrzbkq7ak5wx7zjrfg.jpg","w":2880,"h":1800},{"group":"web design","name":"RandomA11y","url":"https://randoma11y.com/","image":"inspo/j977nrt2y4hvt8y77y9413pevh7zhjqp.jpg","w":1440,"h":900},{"group":"web design","name":"PostHog","url":"https://posthog.com/","image":"inspo/j97dn9tefp0gms88jp6zxkbvyd7zhhqz.jpg","w":1440,"h":900},{"group":"web design","name":"Handmade Web","url":"https://handmade-web.net/","image":"inspo/j9789rsjm3wd0s4ax7cvkn9cm57zgcrc.jpg","w":1440,"h":900},{"group":"web design","name":"BASEMENT FOUNDRY","url":"https://foundry.basement.studio/","image":"inspo/j9755g4wqhc6k3syw8vn9wbab17zefpg.jpg","w":1440,"h":900},{"group":"web design","name":".softGlossary","url":"https://softglossary.space/","image":"inspo/j970dmwy4f59mtvhx82z9gvt957zet99.jpg","w":1440,"h":900},{"group":"web design","name":"Dotfiles Insider - Daytona","url":"https://www.daytona.io/dotfiles","image":"inspo/j975whfpn4k7x8vafgpc486d417zf40s.jpg","w":1440,"h":900},{"group":"web design","name":"Nord Quantique","url":"https://nordquantique.ca/en","image":"inspo/j97bqnp06cr638gtymya998sp17zeepj.jpg","w":1440,"h":900},{"group":"web design","name":"Integrated Reasoning","url":"https://integrated-reasoning.com","image":"inspo/j9725zgznh12jjccqk2766p2d57zf2eb.jpg","w":1440,"h":900},{"group":"visual art","name":"onumi","url":"https://onumi.net","image":"inspo/j978jyy2rzcwva0p0ypk2dfy157z2cg3.jpg","w":750,"h":1333}],
+  /* draft: true shows a DRAFT tag. these are starting points, rewrite them in your own words */
+  posts: [
+    { slug: "one-filter-graph", date: "2026-10-04", draft: true,
+      title: "the whole timeline is one ffmpeg command",
+      summary: "how odyssey's video editor exports without rendering a single intermediate file.",
+      body: `<p>most hobby video editors render each clip, then stitch the results. that means temp files, quality loss on every pass and an export that takes as long as the slowest step twice over.</p>
+<p>odyssey design does it differently. when you hit export, the whole project, every track, cut, crossfade and title, compiles into one ffmpeg <code>filter_complex</code> graph. ffmpeg decodes each source once and writes the final file once.</p>
+<h2>what that buys</h2>
+<p>no intermediate renders, no disk churn, and the export is exactly as good as the sources allow. the cost is that the graph builder has to be right, because there is no step in between where you can look at a half-finished file.</p>
+<blockquote>the timeline is the program. ffmpeg is the runtime.</blockquote>` },
+    { slug: "one-table", date: "2026-09-20", draft: true,
+      title: "every module is a view over one table",
+      summary: "why tasks, notes, contacts and files all live in the same items table.",
+      body: `<p>office suites tend to ship as separate apps that barely know about each other. your notes can't see your calendar; your files can't see your tasks.</p>
+<p>odyssey stores everything as rows in one <code>items</code> table with a <code>kind</code> column, plus a <code>links</code> table for relationships. a "notes app" is just a view filtered to <code>kind = note</code>. linking a task to a contact is one row, not an integration.</p>
+<p>it's a bet. one schema has to carry very different shapes of data. but the alternative is the thing i was trying to get away from.</p>` },
+    { slug: "not-a-fork", date: "2026-09-12", draft: true,
+      title: "why the video editor isn't a kdenlive fork",
+      summary: "a licensing decision that shaped the architecture.",
+      body: `<p>forking kdenlive would have given me a mature editor on day one. it would also have put the whole app under the gpl, and that closes doors i want to keep open.</p>
+<p>so the editor is a deliberately small cuts-and-sequence timeline on top of ffmpeg. it does less, but every line of it is mine, and it fits the rest of the suite instead of sitting next to it.</p>` },
+  ],
+  /* public commits per day, from the github contributions api; private repos left out. refresh with the gh command in the colophon */
+  contrib: {
+    asOf: "2026-10-12", from: "2025-10-13",
+    days: {"2026-07-20":13,"2026-08-05":77,"2026-09-07":32,"2026-09-11":9,"2026-09-13":8,"2026-09-14":4,"2026-09-20":19,"2026-09-21":5,"2026-09-23":1,"2026-09-25":1,"2026-09-29":13,"2026-10-01":12,"2026-10-02":7,"2026-10-08":8,"2026-10-11":4},
+    repos: [["Fs1lyric", 58], ["nexus-video-editor", 33], ["Fs1lyric1", 30], ["odyssey-design", 26], ["dotfiles", 21], ["Fs1lyric1Fs", 15], ["tokenmeter", 11], ["portfolio", 7], ["flowerisy", 6], ["wallpapers", 2], ["chess-engine-1600", 2], ["scoop-odyssey", 1], ["homebrew-odyssey", 1]],
+  },
+};
+/* ---- end content ---- */
+
+const PAGES = ["about", "projects", "blog", "photos", "inspo", "contact"];
+const navHTML = PAGES.map(p => `<a class="nav" href="#${p}" data-page="${p}"><span class="arrow" aria-hidden="true">-&gt;</span><span class="slash" aria-hidden="true">/</span>${p}</a>`).join("");
+document.querySelectorAll("[data-nav]").forEach(n => n.innerHTML = navHTML);
+const fmtDate = d => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }).toLowerCase();
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const draftTag = p => p.draft ? `<span class="draft">draft</span>` : "";
+
+const views = {
+  home: () => `
+    <section class="hero view">
+      <div class="row"><h1>${SITE.name}</h1></div>
+      <p>${SITE.tagline}</p>
+      <nav aria-label="main">${navHTML}</nav>
+      <div class="now"><span class="dot" aria-hidden="true"></span>${SITE.now}</div>
+    </section>`,
+  about: () => `
+    <article class="page view">
+      <h1>about</h1>
+      <p>hi! i'm lyric, a hobbyist coder and artist in dhaka, bangladesh. i also go by the name volksreader online. i love making things that are both functional and beautiful.</p>
+      <h2>hobbies</h2>
+      <ul class="hobbies">${SITE.hobbies.map(h => `
+        <li>${h.link ? `<a class="emoji" href="${h.link[1]}" target="_blank" rel="noopener" title="${h.name}" aria-label="${h.name}">${h.emoji}</a>` : `<span class="emoji" role="img" title="${h.name}" aria-label="${h.name}">${h.emoji}</span>`}</li>`).join("")}
+      </ul>
+      <h2>tech</h2>
+      <dl class="tech">${Object.entries(SITE.tech).map(([k, v]) => `<div><dt>${k}</dt><dd>${v.map(t => `<span>${t}</span>`).join("")}</dd></div>`).join("")}</dl>
+      <h2>links</h2>
+      <ul class="links">
+        ${SITE.socials.filter(l => l.k !== "chess").map(l => `<li><a class="ext" href="${l.url}" target="_blank" rel="noopener">${l.k}<span class="arrow">↗</span></a></li>`).join("")}
+        <li><a class="ext" href="mailto:${SITE.email}">email<span class="arrow">↗</span></a></li>
+      </ul>
+      ${contribSection()}
+    </article>`,
+  projects: () => `
+    <article class="page view">
+      <h1>projects</h1>
+      <p class="lede">software and writing, newest first.</p>
+      <ul class="projects">${SITE.projects.map((p, i) => `
+        <li class="project">
+          <a class="card" href="${p.url}" target="_blank" rel="noopener">
+            <div class="cover">${p.image ? `<img src="${p.image}" alt="${p.name} screenshot">` : `<canvas data-cover="${p.cover}" aria-label="${p.name} cover art" role="img"></canvas>`}</div>
+            <div>
+              <div class="meta"><span>${p.year}</span><span>${p.kind}</span></div>
+              <h3>${p.name}<span class="arrow" aria-hidden="true">-&gt;</span></h3>
+              <p>${p.desc}</p>
+              <div class="tags">${p.tags.map(t => `<span>${t}</span>`).join("")}</div>
+            </div>
+          </a>
+        </li>`).join("")}
+      </ul>
+    </article>`,
+  blog: () => `
+    <article class="page view">
+      <h1>blog</h1>
+      <p class="lede">notes on things i'm building and why they're built that way.</p>
+      <ul class="posts">${SITE.posts.map(p => `
+        <li><a href="#post-${p.slug}">
+          <time datetime="${p.date}">${fmtDate(p.date)}</time>
+          <div><h3>${p.title}${draftTag(p)}</h3><p>${p.summary}</p></div>
+        </a></li>`).join("")}
+      </ul>
+    </article>`,
+  colophon: () => `
+    <article class="page view">
+      <h1>colophon</h1>
+      <p class="lede">how this site is made.</p>
+      <p>it's one html file with no framework and no build step. the content sits in a single object at the top of the script, and each page is rendered from it when the address changes. it should load fast on a bad connection and keep working long after any toolchain would have rotted.</p>
+      <h2>the field</h2>
+      <p>the background is a canvas of monospace characters on a 14 × 18 px grid. each cell adds up three sine waves and a layer of value noise; where the result lands on a contour band, the cell draws one of three characters, picked per cell so the pattern never looks tiled. your cursor bends the bands, and a click sends a ring out across them. it redraws about twenty times a second, and stops moving entirely if your system asks for reduced motion.</p>
+      <p class="charset"><b>.</b> <b>:</b> <b>+</b></p>
+      <p>the contributions heatmap on the about page uses the same five blues as the snake on my github profile.</p>
+      <h2>type</h2>
+      <div class="specimen">
+        <div><span class="k">headings, nav, data · space mono</span><span class="mono">ink eye, chapter one</span></div>
+        <div><span class="k">body · space grotesk</span><span class="sans">runs on your machine and stays there</span></div>
+      </div>
+      <h2>colour</h2>
+      <ul class="swatches">${["--bg", "--bg-2", "--txt-2", "--txt-0", "--cyan", "--violet", "--magenta"].map(t => `<li><span class="chip" style="background:var(${t})"></span>${t.slice(2)}</li>`).join("")}</ul>
+      <h2>credits</h2>
+      <p>the layout, the slash-to-arrow links and the character field are inspired by <a class="ext" href="https://refact0r.dev/" target="_blank" rel="noopener">refact0r.dev<span class="arrow">↗</span></a>. space mono is by colophon foundry and space grotesk by florian karsten, both served by google fonts. contribution counts come from the github graphql api: <code>gh api graphql</code> over <code>contributionsCollection</code>.</p>
+    </article>`,
+  photos: () => `
+    <article class="page view">
+      <h1>photos</h1>
+      ${SITE.photos.length ? `<div class="gallery">${SITE.photos.map((ph, i) => `<button type="button" data-photo="${i}" aria-label="open ${ph.alt}"><img src="${ph.src}" alt="${ph.alt}" loading="lazy"></button>`).join("")}</div>` : `<p class="empty">no photos yet.</p>`}
+    </article>`,
+  inspo: () => `
+    <article class="page view">
+      <h1>inspo</h1>
+      ${SITE.inspo.length ? [...new Set(SITE.inspo.map(x => x.group))].map(g => `
+      <h2>${g}</h2>
+      <ul class="inspo">${SITE.inspo.filter(x => x.group === g).map(x => `<li><a href="${x.url}" target="_blank" rel="noopener" title="${esc(x.name)}"><span class="thumb"><img src="${x.image}" alt="${esc(x.name)}" width="${x.w || ""}" height="${x.h || ""}" loading="lazy"></span><span class="t">${esc(x.name)}</span></a></li>`).join("")}</ul>`).join("") : `<p class="empty">nothing here yet.</p>`}
+    </article>`,
+  contact: () => `
+    <article class="page view">
+      <h1>contact</h1>
+      <p class="lede">email is best. i read everything, and reply to most of it.</p>
+      <ul class="contact">
+        <li><span class="k">email</span><span id="email">${SITE.email}</span><button class="copy" type="button" id="copy-email" data-copy="${SITE.email}">copy</button></li>
+        ${SITE.socials.map(s => `<li><span class="k">${s.k}</span><a class="ext" href="${s.url}" target="_blank" rel="noopener">${s.label}<span class="arrow">↗</span></a></li>`).join("")}
+      </ul>
+    </article>`,
+};
+
+function contribSection() {
+  const C = SITE.contrib, total = Object.values(C.days).reduce((a, b) => a + b, 0);
+  return `
+      <h2>contributions</h2>
+      <div class="heat-wrap" id="heat-wrap"><div class="heat" role="img" aria-label="${total} public commits between ${fmtDate(C.from)} and ${fmtDate(C.asOf)}">${heatCells(C)}</div></div>`;
+}
+
+function heatCells(C) {
+  const lv = n => !n ? 0 : n < 3 ? 1 : n < 10 ? 2 : n < 30 ? 3 : 4;
+  const start = new Date(C.from + "T00:00:00Z"), end = new Date(C.asOf + "T00:00:00Z");
+  start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+  let out = "", col = 0, lastMonth = -1;
+  for (const d = new Date(start); d <= end; col++) {
+    const m = d.getUTCMonth();
+    out += `<span class="m" style="grid-column:${col + 1}">${m !== lastMonth && d.getUTCDate() <= 7 ? d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }).toLowerCase() : ""}</span>`;
+    if (m !== lastMonth && d.getUTCDate() <= 7) lastMonth = m;
+    for (let wd = 0; wd < 7; wd++, d.setUTCDate(d.getUTCDate() + 1)) {
+      const key = d.toISOString().slice(0, 10), n = C.days[key] || 0, l = lv(n);
+      const label = d > end ? "" : `${n} commit${n === 1 ? "" : "s"} on ${fmtDate(key)}`;
+      out += d > end ? `<i style="grid-column:${col + 1};grid-row:${wd + 2};visibility:hidden"></i>`
+        : `<i style="grid-column:${col + 1};grid-row:${wd + 2}" data-l="${l}" title="${label}"></i>`;
+    }
+  }
+  return out;
+}
+
+function postView(p) {
+  return `
+    <article class="page post view">
+      <a class="back" href="#blog"><span class="arrow">&lt;-</span>blog</a>
+      <h1>${p.title}${draftTag(p)}</h1>
+      <div class="when"><time datetime="${p.date}">${fmtDate(p.date)}</time></div>
+      <div class="body">${p.body}</div>
+    </article>`;
+}
+
+const app = document.getElementById("app");
+const header = document.getElementById("top");
+function route() {
+  const hash = (location.hash || "#home").slice(1);
+  const post = hash.startsWith("post-") && SITE.posts.find(p => p.slug === hash.slice(5));
+  const key = post ? "blog" : views[hash] ? hash : "home";
+  app.innerHTML = post ? postView(post) : views[key]();
+  document.body.classList.toggle("home", key === "home");
+  header.inert = key === "home";
+  document.querySelectorAll("a.nav").forEach(a => {
+    if (a.dataset.page === key) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  document.title = post ? `${post.title} · ${SITE.name}` : key === "home" ? SITE.name : `${key} · ${SITE.name}`;
+  if (key !== "home") window.scrollTo(0, 0);
+  const hw = document.getElementById("heat-wrap");
+  if (hw) requestAnimationFrame(() => hw.scrollLeft = hw.scrollWidth);
+  app.querySelectorAll("canvas[data-cover]").forEach(drawCover);
+}
+
+app.addEventListener("click", e => {
+  const b = e.target.closest("[data-photo]");
+  if (!b) return;
+  const ph = SITE.photos[+b.dataset.photo], box = document.createElement("div");
+  box.className = "lightbox"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", ph.alt);
+  box.innerHTML = `<img src="${ph.src}" alt="${ph.alt}">`;
+  const close = () => { box.remove(); removeEventListener("keydown", esc); b.focus(); };
+  const esc = ev => { if (ev.key === "Escape") close(); };
+  box.addEventListener("click", close); addEventListener("keydown", esc);
+  document.body.append(box);
+});
+
+app.addEventListener("click", async e => {
+  const b = e.target.closest("[data-copy]");
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "copied"; }
+  catch {
+    const r = document.createRange(); r.selectNodeContents(document.getElementById("email"));
+    getSelection().removeAllRanges(); getSelection().addRange(r); b.textContent = "selected";
+  }
+  setTimeout(() => b.textContent = "copy", 1400);
+});
+
+const clock = document.getElementById("clock");
+function tick() {
+  try { clock.textContent = "dhaka " + new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit" }).format(new Date()); } catch {}
+}
+tick(); setInterval(tick, 30000);
+
+const hash2 = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
+const clamp = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+/* ascii project covers, drawn in the same character set as the background */
+function drawCover(cv) {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = cv.width = Math.round(cv.clientWidth * dpr), h = cv.height = Math.round(cv.clientHeight * dpr);
+  const ctx = cv.getContext("2d"), cs = getComputedStyle(document.documentElement);
+  const col = { c: cs.getPropertyValue("--cyan").trim(), v: cs.getPropertyValue("--violet").trim(), m: cs.getPropertyValue("--magenta").trim(), d: cs.getPropertyValue("--txt-3").trim() };
+  const cw = 9 * dpr, ch = 13 * dpr;
+  ctx.font = `${10 * dpr}px "Space Mono", monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const cols = Math.floor(w / cw), rows = Math.floor(h / ch);
+  for (let gy = 1; gy < rows; gy++) for (let gx = 1; gx < cols; gx++) {
+    const u = gx / cols, v = gy / rows, r = hash2(gx, gy);
+    let chr = null, color = col.d, a = .35;
+    if (cv.dataset.cover === "timeline") {
+      /* stacked tracks of clips with a playhead */
+      const track = Math.floor(v * 6);
+      const lane = (v * 6) % 1;
+      if (track >= 1 && track <= 4 && lane > .2 && lane < .8) {
+        const seed = Math.sin(track * 9.1) * .5 + .5;
+        const clip = Math.sin(u * (8 + track * 3) + seed * 6) > -.2;
+        if (clip) { chr = track === 4 ? "~" : "="; color = [col.c, col.v, col.m, col.c][track - 1]; a = .55 + r * .3; }
+      }
+      if (Math.abs(u - .62) < .012) { chr = "|"; color = col.m; a = .95; }
+    } else {
+      /* an eye drawn in ink: almond outline, iris rings, a pupil, a drip */
+      const x = (u - .5) * 2 * (w / h), y = (v - .5) * 2;
+      const lid = Math.abs(y) - .62 * (1 - (x / 1.25) ** 2);
+      const d = Math.hypot(x, y);
+      if (Math.abs(lid) < .07 && Math.abs(x) < 1.25) { chr = r > .5 ? "+" : ":"; color = col.c; a = .85; }
+      else if (lid < 0 && d < .42) { chr = d < .16 ? "#" : Math.abs(Math.sin(d * 40)) > .55 ? ":" : "."; color = d < .16 ? col.m : col.v; a = d < .16 ? .95 : .7; }
+      else if (Math.abs(x - .05) < .03 && y > .2 && y < .9 - r * .3) { chr = ":"; color = col.m; a = .7; }
+    }
+    if (!chr) { if (r > .82) chr = "."; else continue; }
+    ctx.globalAlpha = a; ctx.fillStyle = color; ctx.fillText(chr, gx * cw, gy * ch);
+  }
+  ctx.globalAlpha = 1;
+}
+
+addEventListener("hashchange", route);
+route();
+
+/* background field: layered sine contours, warped by value noise, pulled by the cursor; a click sends out a ring */
+(() => {
+  const cv = document.getElementById("field");
+  const ctx = cv.getContext("2d");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const CW = 14, CH = 18, FS = 12;
+  let dpr = 1, raf = 0, last = 0, ring = null;
+  const ptr = { x: .5, y: .5 }, target = { x: .5, y: .5 };
+  const fade = t => t * t * (3 - 2 * t);
+  const noise = (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), u = fade(x - xi), v = fade(y - yi);
+    const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+    return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
+  };
+  function size() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.width = Math.round(cv.clientWidth * dpr);
+    cv.height = Math.round(cv.clientHeight * dpr);
+  }
+  function draw(now) {
+    const w = cv.width, h = cv.height;
+    if (!w || !h) return;
+    const cs = getComputedStyle(document.documentElement);
+    const hs = cs.getPropertyValue("--field").trim(), L = parseFloat(cs.getPropertyValue("--field-l"));
+    const t = reduce.matches ? 0 : now * 1e-4, ar = w / h;
+    const cw = CW * dpr, ch = CH * dpr;
+    ptr.x += (target.x - ptr.x) * .1; ptr.y += (target.y - ptr.y) * .1;
+    const rp = ring ? (now - ring.t0) / 2800 : 2;
+    if (rp > 1) ring = null;
+    /* sub-pages dim the field so text stays readable */
+    const dim = document.body.classList.contains("home") ? 1 : .45;
+    ctx.clearRect(0, 0, w, h);
+    ctx.font = `${FS * dpr}px "Space Mono", monospace`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (let y = ch; y < h; y += ch) for (let x = cw; x < w; x += cw) {
+      const u = x / w, v = y / h, gx = Math.round(x / cw), gy = Math.round(y / ch);
+      const dx = (u - ptr.x) * ar, dy = v - ptr.y;
+      const pull = clamp(1 - Math.hypot(dx, dy) / .32) ** 2 * .7;
+      const warp = (noise(u * 4 * ar + t * .12, v * 4 - t * .08) - .5) * .8;
+      const f = Math.sin(u * 10 + v * 3 + t) + .6 * Math.sin(v * 14 - t * .7) + .3 * Math.sin((u - v) * 22 + t * .4) + warp + pull;
+      const band = Math.abs(Math.sin(f * 2.6));
+      const r = hash2(gx, gy);
+      const vis = clamp((band - (.88 + r * .1) + .025) / .05);
+      let pulse = 0;
+      if (ring) {
+        const d = Math.hypot((u - ring.x) * ar, v - ring.y) - rp * Math.hypot(ar, 1) + f * .01;
+        pulse = Math.exp(-((d / (.12 + rp * .03)) ** 2) * 1.8) * clamp((1 - rp) / .25) * (.2 + clamp((band - .6) / .25) * .8);
+      }
+      if (vis < .01 && pulse < .01) continue;
+      const edge = Math.min(1, u / .04, (1 - u) / .04) * Math.min(1, v / .05, (1 - v) / .05);
+      const a = ((.33 + Math.max(0, band - .9)) * vis * dim + pulse * .8) * edge;
+      ctx.fillStyle = `hsla(${hs}, ${L + clamp(pulse * 1.8) * 25}%, ${a})`;
+      ctx.fillText(r > .9 ? "+" : r > .62 ? ":" : ".", x, y);
+    }
+  }
+  function loop(now) {
+    if (now - last > (ring ? 12 : 48)) { draw(now); last = now; }
+    raf = requestAnimationFrame(loop);
+  }
+  function start() { cancelAnimationFrame(raf); size(); draw(performance.now()); if (!reduce.matches) raf = requestAnimationFrame(loop); }
+  addEventListener("pointermove", e => { target.x = e.clientX / innerWidth; target.y = e.clientY / innerHeight; }, { passive: true });
+  addEventListener("pointerdown", e => { if (!reduce.matches && !e.target.closest("a,button")) ring = { x: e.clientX / innerWidth, y: e.clientY / innerHeight, t0: performance.now() }; });
+  addEventListener("resize", () => { size(); draw(performance.now()); app.querySelectorAll("canvas[data-cover]").forEach(drawCover); }, { passive: true });
+  addEventListener("hashchange", () => draw(performance.now()));
+  reduce.addEventListener?.("change", start);
+  document.fonts?.ready.then(() => { draw(performance.now()); app.querySelectorAll("canvas[data-cover]").forEach(drawCover); });
+  start();
+})();
+</script>
+</body>
+</html>
