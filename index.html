@@ -178,17 +178,6 @@ body.home main { display: flex; align-items: center; justify-content: center; ma
 .legend i { width: .7rem; }
 .fine { font-size: .9rem; color: var(--txt-3); max-width: 62ch; line-height: 1.6; }
 
-/* colophon */
-.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 1rem; margin: 1rem 0; padding: 0; list-style: none; }
-.swatches li { display: grid; gap: .4rem; font-family: var(--mono); font-size: .8rem; color: var(--txt-2); }
-.swatches .chip { aspect-ratio: 3 / 2; max-width: 100%; border: 1px solid var(--bg-3); }
-.specimen { display: grid; gap: 1rem; margin: 1rem 0; }
-.specimen div { display: grid; gap: .2rem; }
-.specimen .k { font-family: var(--mono); font-size: .8rem; color: var(--txt-3); }
-.specimen .mono { font-family: var(--mono); font-size: 1.6rem; color: var(--txt-0); }
-.specimen .sans { font-family: var(--sans); font-size: 1.6rem; color: var(--txt-0); }
-.charset { font-family: var(--mono); font-size: 1.1rem; letter-spacing: .4em; color: var(--txt-2); }
-.charset b { font-weight: 400; color: var(--cyan); }
 
 footer a { color: var(--txt-2); transition: color .2s; }
 footer a:hover { color: var(--txt-0); }
@@ -227,7 +216,7 @@ body.home footer { display: none; }
 <main id="app"></main>
 
 <footer>
-  <span>© nabhan lyric chowdhury · <a href="#colophon">colophon</a></span>
+  <span>© nabhan lyric chowdhury</span>
   <span id="clock">dhaka --:--</span>
 </footer>
 
@@ -295,7 +284,7 @@ const SITE = {
       body: `<p>forking kdenlive would have given me a mature editor on day one. it would also have put the whole app under the gpl, and that closes doors i want to keep open.</p>
 <p>so the editor is a deliberately small cuts-and-sequence timeline on top of ffmpeg. it does less, but every line of it is mine, and it fits the rest of the suite instead of sitting next to it.</p>` },
   ],
-  /* public commits per day, from the github contributions api; private repos left out. refresh with the gh command in the colophon */
+  /* public commits per day, from the github contributions api; private repos left out. refresh with gh api graphql over contributionsCollection */
   contrib: {
     asOf: "2026-10-12", from: "2025-10-13",
     days: {"2026-07-20":13,"2026-08-05":77,"2026-09-07":32,"2026-09-11":9,"2026-09-13":8,"2026-09-14":4,"2026-09-20":19,"2026-09-21":5,"2026-09-23":1,"2026-09-25":1,"2026-09-29":13,"2026-10-01":12,"2026-10-02":7,"2026-10-08":8,"2026-10-11":4},
@@ -364,25 +353,6 @@ const views = {
           <div><h3>${p.title}${draftTag(p)}</h3><p>${p.summary}</p></div>
         </a></li>`).join("")}
       </ul>
-    </article>`,
-  colophon: () => `
-    <article class="page view">
-      <h1>colophon</h1>
-      <p class="lede">how this site is made.</p>
-      <p>it's one html file with no framework and no build step. the content sits in a single object at the top of the script, and each page is rendered from it when the address changes. it should load fast on a bad connection and keep working long after any toolchain would have rotted.</p>
-      <h2>the field</h2>
-      <p>the background is a canvas of monospace characters on a 14 × 18 px grid. each cell adds up three sine waves and a layer of value noise; where the result lands on a contour band, the cell draws one of three characters, picked per cell so the pattern never looks tiled. your cursor bends the bands, and a click sends a ring out across them. it redraws about twenty times a second, and stops moving entirely if your system asks for reduced motion.</p>
-      <p class="charset"><b>.</b> <b>:</b> <b>+</b></p>
-      <p>the contributions heatmap on the about page uses the same five blues as the snake on my github profile.</p>
-      <h2>type</h2>
-      <div class="specimen">
-        <div><span class="k">headings, nav, data · space mono</span><span class="mono">ink eye, chapter one</span></div>
-        <div><span class="k">body · space grotesk</span><span class="sans">runs on your machine and stays there</span></div>
-      </div>
-      <h2>colour</h2>
-      <ul class="swatches">${["--bg", "--bg-2", "--txt-2", "--txt-0", "--cyan", "--violet", "--magenta"].map(t => `<li><span class="chip" style="background:var(${t})"></span>${t.slice(2)}</li>`).join("")}</ul>
-      <h2>credits</h2>
-      <p>the layout, the slash-to-arrow links and the character field are inspired by <a class="ext" href="https://refact0r.dev/" target="_blank" rel="noopener">refact0r.dev<span class="arrow">↗</span></a>. space mono is by colophon foundry and space grotesk by florian karsten, both served by google fonts. contribution counts come from the github graphql api: <code>gh api graphql</code> over <code>contributionsCollection</code>.</p>
     </article>`,
   photos: () => `
     <article class="page view">
